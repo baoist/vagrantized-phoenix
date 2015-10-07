@@ -8,6 +8,12 @@
 
 ## Getting Started
 
+You will need to initialize your phoenix app at the base of `./src/`.
+
+Replace the variables `APP_NAME` in [Vagrantfile](./vagrant/Vagrantfile)
+and the various variables in [application.yml](./vagrant/ansible/vars/application.yml).
+Then continue.
+
 You'll need to install [VirtualBox][], [Vagrant][], and [Ansible][]
 first. VirtualBox and Vagrant both have Mac OS X installer packages, and
 Ansible can be installed either with Homebrew or with pip, the Python
