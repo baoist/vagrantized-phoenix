@@ -38,7 +38,10 @@ You can then visit <http://ampifiu.local/>.
 
 The app will be started inside a detached [`screen(1)`][screen] session
 inside the Vagrant box. To access it, run `vagrant ssh` and answer 'y'
-when prompted to resume the `screen(1)` session.
+when prompted to resume the `screen(1)` session. Note, if you get a message that
+there is a dead screen session when you ssh in, you'll have to manually run
+
+    $ ./phoenix-screen.sh
 
 [screen]: http://www.gnu.org/software/screen/
 
