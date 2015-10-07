@@ -1,0 +1,10 @@
+app_name: appname
+app_module: Appname
+app_port: 4000
+db_username: vagrant
+db_password: password
+
+erlang_url: https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+erlang_bin: /usr/bin/erlang-solutions_1.0_all.deb
+
+phoenix_url: https://github.com/phoenixframework/phoenix/releases/download/v1.0.3/phoenix_new-1.0.3.ez

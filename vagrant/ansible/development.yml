@@ -1,0 +1,93 @@
+- name: Set up base development environment
+  hosts: all
+  vars_files:
+    - vars/application.yml
+  sudo: yes
+  tasks:
+    - apt: update_cache=yes upgrade=safe
+    - apt: name={{item}}
+      with_items:
+        - git
+        - nodejs-legacy
+        - npm
+        - inotify-tools
+    - get_url: url={{erlang_url}} dest={{erlang_bin}} mode=0777
+    - apt: deb={{erlang_bin}}
+    - apt: name=elixir update_cache=yes
+    - copy:
+        src: files/bash_profile
+        dest: /home/vagrant/.profile
+    - copy:
+        src: files/bashrc
+        dest: /home/vagrant/.bashrc
+
+- name: PostgreSQL database server
+  hosts: all
+  sudo: yes
+  vars_files:
+    - vars/application.yml
+  tasks:
+    - apt: name={{item}}
+      with_items:
+        - postgresql
+        - libpq-dev
+        - python-psycopg2
+        - postgresql-contrib
+    - postgresql_user: name="{{db_username}}" password="{{db_password}}" role_attr_flags=CREATEDB,NOSUPERUSER,NOCREATEROLE
+      sudo_user: postgres
+
+- name: Nginx web server
+  hosts: all
+  vars_files:
+    - vars/application.yml
+  sudo: yes
+  tasks:
+    - apt: name=nginx-core
+    - service: name=nginx state=started
+    - template:
+        src: templates/nginx.j2
+        dest: /etc/nginx/sites-available/{{app_name}}
+    - file:
+        path: /etc/nginx/sites-enabled/{{app_name}}
+        state: link
+        src: /etc/nginx/sites-available/{{app_name}}
+      notify:
+        - restart nginx
+  handlers:
+    - name: restart nginx
+      service: name=nginx state=restarted
+
+- name: App bootstrap
+  hosts: all
+  vars_files:
+    - vars/application.yml
+  tasks:
+    - local_action:
+        module: stat
+        path: ../../src/config/dev.exs
+      register: dev_exists
+    - local_action:
+        module: template
+        src: templates/dev.exs.j2
+        dest: ../../src/config/dev.exs
+      when: not dev_exists.stat.exists
+    - command: mix archive.install {{phoenix_url}} --force
+    - command: mix local.hex chdir=/srv/{{app_name}} --force
+    - command: mix deps.get chdir=/srv/{{app_name}}
+    - command: mix local.rebar chdir=/srv/{{app_name}} --force
+    - command: mix ecto.create chdir=/srv/{{app_name}}
+    - command: mix ecto.migrate chdir=/srv/{{app_name}}
+    - command: npm install -no-bin-links chdir=/srv/{{app_name}}
+    - command: mix hex.info chdir=/srv/{{app_name}}
+    - template:
+        src: templates/cmd-in-screen.sh.j2
+        dest: "{{item.dest}}"
+        mode: 0755
+      with_items:
+        - dest: /home/vagrant/phoenix-screen.sh
+          command: 'mix phoenix.server'
+    - shell: grep -qi '^screen -dmS {{app_name}}' /proc/[0-9]*/cmdline
+      ignore_errors: yes
+      register: find_screen_session
+    - command: screen -dmS {{app_name}} -c /vagrant/devscreenrc
+      when: find_screen_session|failed

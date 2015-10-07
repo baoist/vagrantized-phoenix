@@ -1,0 +1,1 @@
+{"virtualbox":{"/srv/ampifiu":{"guestpath":"/srv/ampifiu","hostpath":"/Users/baoist/Projects/ampifiu/src","disabled":false},"/vagrant":{"guestpath":"/vagrant","hostpath":"/Users/baoist/Projects/ampifiu/vagrant","disabled":false}}}

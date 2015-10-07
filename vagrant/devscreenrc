@@ -1,0 +1,1 @@
+screen -t phoenix bash --rcfile /home/vagrant/phoenix-screen.sh
